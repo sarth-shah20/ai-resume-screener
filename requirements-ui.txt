@@ -1,0 +1,2 @@
+# Install after the shared project dependencies: pip install -r requirements-ui.txt
+streamlit>=1.39,<2
