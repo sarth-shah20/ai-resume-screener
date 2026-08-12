@@ -1,7 +1,7 @@
 from io import BytesIO
 from pathlib import Path
 import re
-import fitz
+import pymupdf
 from docx import Document
 
 class DocumentParseError(ValueError):
@@ -22,7 +22,7 @@ def parse_document(filename: str, content: bytes, max_size_bytes: int) -> str:
         raise DocumentParseError("Supported document types are PDF, DOCX, and TXT.")
     try:
         if suffix == ".pdf":
-            with fitz.open(stream=content, filetype="pdf") as document:
+            with pymupdf.open(stream=content, filetype="pdf") as document:
                 text = "\n".join(page.get_text("text") for page in document)
         elif suffix == ".docx":
             text = "\n".join(p.text for p in Document(BytesIO(content)).paragraphs)
@@ -39,7 +39,7 @@ def extract_github_repositories(filename: str, content: bytes, text: str) -> lis
     urls = set(GITHUB_REPOSITORY.findall(text))
     if Path(filename).suffix.lower() == ".pdf":
         try:
-            with fitz.open(stream=content, filetype="pdf") as document:
+            with pymupdf.open(stream=content, filetype="pdf") as document:
                 urls.update(
                     link["uri"]
                     for page in document

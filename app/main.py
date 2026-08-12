@@ -5,6 +5,15 @@ Run with: streamlit run app/main.py
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Streamlit executes this file with app/ as sys.path[0]. Add the repository
+# root so absolute app.* and src.* imports work without requiring installation.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import streamlit as st
 
 from app.components.layout import disclaimer_banner, page_header
