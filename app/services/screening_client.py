@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -29,14 +30,27 @@ class ScreeningClient:
         self.base_url = (base_url or Settings().backend_url).rstrip("/")
 
     def _request(self, method: str, path: str, **kwargs: Any) -> dict[str, Any]:
-        try:
-            response = httpx.request(
-                method, f"{self.base_url}{path}", timeout=180, **kwargs
-            )
-        except httpx.HTTPError as exc:
+        response = None
+        last_error = None
+        for attempt in range(3):
+            try:
+                response = httpx.request(
+                    method, f"{self.base_url}{path}", timeout=180, **kwargs
+                )
+                break
+            except httpx.ConnectError as exc:
+                last_error = exc
+                if attempt < 2:
+                    time.sleep(0.4)
+            except httpx.HTTPError as exc:
+                raise BackendUnavailable(
+                    f"The screening backend request failed at {self.base_url}: {exc}"
+                ) from exc
+        if response is None:
             raise BackendUnavailable(
-                f"Could not connect to the screening backend at {self.base_url}."
-            ) from exc
+                f"Could not connect to the screening backend at {self.base_url}. "
+                "Confirm that uvicorn app.api:app --reload is running."
+            ) from last_error
         if response.is_error:
             try:
                 detail = response.json().get("detail", response.text)
