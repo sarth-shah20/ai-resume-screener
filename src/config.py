@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     nvidia_model: str = "openai/gpt-oss-120b"
     github_token: str = ""
     database_url: str = "sqlite:///data/resume_screener.db"
+    backend_url: str = "http://127.0.0.1:8000"
     max_file_size_mb: int = Field(default=5, ge=1, le=20)
     max_resumes_per_request: int = Field(default=5, ge=1, le=10)
     max_concurrent_evaluations: int = Field(default=3, ge=1, le=10)

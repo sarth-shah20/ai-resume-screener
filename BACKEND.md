@@ -7,7 +7,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
 cp .env.example .env
-uvicorn app.main:app --reload
+uvicorn app.api:app --reload
 ```
 
 Replace `.env` contents with:
@@ -26,6 +26,17 @@ LLM_TIMEOUT_SECONDS=90
 ```
 
 API documentation is available at `http://127.0.0.1:8000/docs`.
+
+## Start the recruiter interface
+
+In a second terminal, with the backend still running:
+
+```bash
+streamlit run app/main.py
+```
+
+The interface is available at `http://127.0.0.1:8501` and uses
+`BACKEND_URL=http://127.0.0.1:8000` by default.
 
 `POST /api/v1/analyze` accepts a job description and up to five resumes as text, PDF, DOCX, or TXT. `POST /api/v1/github/verify` performs optional, read-only verification of one canonical public GitHub repository URL.
 

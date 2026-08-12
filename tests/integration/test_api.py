@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from src.models.schemas import CandidateAnalysis, ExtractedJob
-from app.main import app, provider
+from app.api import app, provider
 
 class FakeLLM:
     async def extract_job(self, text):
@@ -14,7 +14,9 @@ app.dependency_overrides[provider] = lambda: FakeLLM()
 client = TestClient(app)
 
 def test_health():
-    assert client.get("/health").status_code == 200
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["max_resumes_per_request"] == 5
 
 def test_analyze_pasted_text():
     response = client.post("/api/v1/analyze", data={"jd_text": "Need Python", "resume_text": "Built Python APIs", "blind_mode": "true"})

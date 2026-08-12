@@ -1,0 +1,29 @@
+Jordan Rivera
+jordan.rivera@example.com | (555) 010-2938 | Seattle, WA
+
+SUMMARY
+Backend engineer with 5 years of experience building and operating
+production services on AWS.
+
+EXPERIENCE
+
+Backend Engineer, Northbridge Systems (2021 - Present)
+- Built and maintained REST APIs in Python (Flask) serving 2M+ daily requests.
+- Designed AWS Lambda functions for asynchronous order processing, backed by
+  S3 for artifact storage; owned the service through two major AWS incidents.
+- Migrated the primary datastore to PostgreSQL, including schema design and
+  a zero-downtime cutover.
+- Containerized all services with Docker and deployed them to a Kubernetes
+  cluster; wrote the team's first Helm charts.
+
+Software Engineer, Alderway Data (2019 - 2021)
+- Developed internal REST APIs in Python for a data-ingestion pipeline.
+- Introduced an event-driven architecture using SQS to decouple ingestion
+  from processing, cutting end-to-end latency by 40%.
+
+EDUCATION
+B.S. in Computer Science, University of Washington (2019)
+
+SKILLS
+Python, AWS (Lambda, S3, SQS), PostgreSQL, REST API design, Docker,
+Kubernetes, event-driven architecture

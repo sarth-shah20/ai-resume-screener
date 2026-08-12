@@ -26,6 +26,22 @@ See [plan.md](plan.md) for the hackathon implementation plan and [CLAUDE.md](CLA
 
 See [docs/IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md) for the detailed backend architecture, libraries, analysis workflow, scoring model, database schema, API contracts, privacy controls, and agentic artificial intelligence assessment.
 
+## Run the application
+
+```bash
+pip install -e '.[dev]'
+uvicorn app.api:app --reload
+```
+
+In a second terminal:
+
+```bash
+streamlit run app/main.py
+```
+
+FastAPI serves the analysis and persistence API on port 8000. Streamlit serves
+the recruiter dashboard on port 8501 and calls FastAPI through `BACKEND_URL`.
+
 ## Contributing
 
 Create a task-specific branch before editing, push only that branch, and open a pull request into `main`. Never commit API keys, real resumes, or candidate PII.

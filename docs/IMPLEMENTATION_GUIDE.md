@@ -36,7 +36,9 @@ The backend currently supports:
 - job, candidate-list, and candidate-detail dashboard APIs
 - unit and integration tests
 
-The repository does not currently contain a visual recruiter dashboard. The backend endpoints required by such a dashboard exist, but a frontend must still be built to present them.
+The repository contains a Streamlit recruiter interface that consumes the
+FastAPI backend. It supports new analyses, saved job history, newest-first
+candidate lists, and complete candidate report drill-down.
 
 ## 3. High-level architecture
 
@@ -104,7 +106,9 @@ The language model never supplies the authoritative final numeric score.
 
 ```text
 app/
-  main.py                         FastAPI application and route definitions
+  api.py                          FastAPI application and route definitions
+  main.py                         Streamlit recruiter interface entry point
+  views/                          Analysis, dashboard, and candidate report screens
 
 src/
   config.py                       Environment-based configuration
@@ -256,6 +260,7 @@ Important environment variables:
 | `NVIDIA_MODEL` | Model used for extraction and analysis | `openai/gpt-oss-120b` |
 | `GITHUB_TOKEN` | Optional GitHub token for higher API limits | empty |
 | `DATABASE_URL` | SQLite database location | `sqlite:///data/resume_screener.db` |
+| `BACKEND_URL` | FastAPI address used by the Streamlit interface | `http://127.0.0.1:8000` |
 | `MAX_FILE_SIZE_MB` | Maximum uploaded document size in megabytes | `5` |
 | `MAX_RESUMES_PER_REQUEST` | Maximum resumes in one analysis request | `5` |
 | `MAX_CONCURRENT_EVALUATIONS` | Maximum simultaneous candidate tasks | `3` |
@@ -739,7 +744,7 @@ Unknown job or candidate identifiers return `404 Not Found`.
 
 ## 12. Recruiter dashboard behavior
 
-A visual frontend should use the APIs as follows:
+The Streamlit frontend uses the APIs as follows:
 
 ```text
 Dashboard page
@@ -756,7 +761,7 @@ Candidate report page
     GET /api/v1/jobs/{job_id}/candidates/{candidate_id}
 ```
 
-Recommended top-level job cards:
+Implemented top-level job cards show:
 
 - title;
 - creation time;
@@ -764,7 +769,7 @@ Recommended top-level job cards:
 - average verified score; and
 - average potential score.
 
-Recommended candidate list:
+The implemented candidate list shows:
 
 - source/display name;
 - verified score;
@@ -774,7 +779,7 @@ Recommended candidate list:
 - GitHub verification count; and
 - analysis time.
 
-Recommended candidate detail:
+The implemented candidate detail shows:
 
 - clear human-review notice;
 - verified versus potential score;
@@ -949,11 +954,11 @@ At the time this document was created, 15 tests passed.
 
 ### Highest priority
 
-1. Build the visual recruiter dashboard against the three read endpoints.
-2. Improve exhaustive job requirement extraction.
-3. Validate that quoted evidence actually exists in normalized resume text.
-4. Enforce exactly one match for every requirement.
-5. Add stable job-posting records if candidates must be appended across separate upload sessions.
+1. Improve exhaustive job requirement extraction.
+2. Validate that quoted evidence actually exists in normalized resume text.
+3. Enforce exactly one match for every requirement.
+4. Add stable job-posting records if candidates must be appended across separate upload sessions.
+5. Add pagination and filtering controls to the visual dashboard.
 
 ### Data and persistence
 
@@ -996,7 +1001,7 @@ cp .env.example .env
 Add local credentials to `.env`, then run:
 
 ```bash
-.venv/bin/uvicorn app.main:app --reload
+.venv/bin/uvicorn app.api:app --reload
 ```
 
 Open:
@@ -1004,6 +1009,14 @@ Open:
 ```text
 http://127.0.0.1:8000/docs
 ```
+
+In a second terminal, start the recruiter interface:
+
+```bash
+.venv/bin/streamlit run app/main.py
+```
+
+Open `http://127.0.0.1:8501`.
 
 Run tests:
 

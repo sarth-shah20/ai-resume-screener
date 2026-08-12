@@ -1,0 +1,23 @@
+Sam Okafor
+sam.okafor@example.com | (555) 019-4471 | Austin, TX
+
+SUMMARY
+Software developer interested in backend and cloud infrastructure work.
+
+EXPERIENCE
+
+Software Developer, Fielding Retail Co. (2022 - Present)
+- Wrote internal tooling in Python to automate inventory reports.
+- Used AWS Lambda in one project to trigger nightly report generation.
+- Worked with a PostgreSQL database maintained by another team; wrote
+  read-only reporting queries against it.
+
+Junior Developer, Campus IT Help Desk (2021 - 2022, part-time)
+- Built small internal scripts and a basic Flask app for ticket tracking.
+
+EDUCATION
+Associate's Degree in Information Technology, Austin Community College (2021)
+Currently completing a B.S. in Computer Science part-time.
+
+SKILLS
+Python, SQL, basic AWS, Flask, Git

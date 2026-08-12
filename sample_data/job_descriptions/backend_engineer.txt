@@ -1,0 +1,19 @@
+Backend Engineer
+
+We are looking for a Backend Engineer to join our platform team.
+
+Requirements:
+- 3+ years of experience building production backend systems
+- Strong proficiency in Python
+- Experience with AWS, particularly Lambda and S3
+- Solid understanding of relational databases (PostgreSQL preferred)
+- Experience designing and consuming REST APIs
+- Bachelor's degree in Computer Science or a related field
+
+Nice to have:
+- Experience with Kubernetes
+- Familiarity with Docker and containerized deployments
+- Exposure to event-driven architectures
+
+You will work closely with the frontend and data teams to design scalable
+services, own features end to end, and participate in on-call rotation.
