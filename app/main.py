@@ -3,6 +3,7 @@ import httpx
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import Settings, get_settings
+from src.database import ScreeningRepository
 from src.models.schemas import AnalyzeResponse, GitHubVerifyRequest, GitHubVerifyResponse
 from src.parsers import DocumentParseError, parse_document
 from src.services.github_service import GitHubVerifier
@@ -38,7 +39,8 @@ async def analyze(jd_text: Annotated[str | None, Form()] = None, jd_file: Annota
             resumes.append(("Pasted resume", resume_text.strip()))
         for file in files:
             resumes.append((file.filename or "Uploaded resume", parse_document(file.filename or "resume", await file.read(), limit)))
-        return await ScreeningService(llm).analyze(job, resumes, blind_mode)
+        repository = ScreeningRepository(settings.database_url)
+        return await ScreeningService(llm, repository, settings.max_concurrent_evaluations).analyze(job, resumes, blind_mode)
     except DocumentParseError as exc:
         raise HTTPException(422, str(exc)) from exc
     except LLMError as exc:
