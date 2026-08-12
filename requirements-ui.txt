@@ -1,0 +1,6 @@
+# UI-only dependencies for the Streamlit frontend (feature/streamlit-ui).
+# Backend/service dependencies (pydantic, PyMuPDF, python-docx, LLM SDKs, etc.)
+# belong in the shared requirements.txt owned by the backend streams.
+streamlit==1.39.0
+plotly==5.24.1
+pandas==2.2.3
