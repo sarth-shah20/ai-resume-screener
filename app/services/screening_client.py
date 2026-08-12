@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.services import fixtures
+
 
 class ScreeningClient:
     """Single entry point the UI uses for all analysis operations."""
@@ -25,10 +27,16 @@ class ScreeningClient:
     def extract_requirements(self, job_description: str) -> dict[str, Any]:
         """Return structured requirements extracted from a job description.
 
-        Real implementation will call src/services/llm_service.py (Prompt 1
-        in plan.md #7) and validate against src/models/schemas.py.
+        Currently returns a fixed mock (see app/services/fixtures.py) since
+        src/services/llm_service.py and src/models/schemas.py don't exist
+        yet. Real implementation will call the LLM service (Prompt 1 in
+        plan.md #7) and validate the response against the Pydantic schema --
+        this method's signature and return shape are the contract views code
+        against, so that swap should require no view changes.
         """
-        raise NotImplementedError("Wired up in the job-setup module.")
+        if not job_description or not job_description.strip():
+            raise ValueError("Job description must not be empty.")
+        return fixtures.mock_extract_requirements(job_description)
 
     def parse_resume(self, file_bytes: bytes, filename: str) -> dict[str, Any]:
         """Return extracted text/sections for one uploaded resume.
