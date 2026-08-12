@@ -24,6 +24,8 @@ scripts/             Development and utility scripts
 
 See [plan.md](plan.md) for the hackathon implementation plan and [CLAUDE.md](CLAUDE.md) for architecture and contribution rules.
 
+See [docs/IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md) for the detailed backend architecture, libraries, analysis workflow, scoring model, database schema, API contracts, privacy controls, and agentic artificial intelligence assessment.
+
 ## Contributing
 
 Create a task-specific branch before editing, push only that branch, and open a pull request into `main`. Never commit API keys, real resumes, or candidate PII.
