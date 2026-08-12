@@ -29,4 +29,10 @@ API documentation is available at `http://127.0.0.1:8000/docs`.
 
 `POST /api/v1/analyze` accepts a job description and up to five resumes as text, PDF, DOCX, or TXT. `POST /api/v1/github/verify` performs optional, read-only verification of one canonical public GitHub repository URL.
 
-Completed analyses are persisted to SQLite. Candidate evaluations run concurrently while `MAX_CONCURRENT_EVALUATIONS` bounds NVIDIA API usage.
+Completed analyses are persisted to SQLite. Candidate evaluations run concurrently while `MAX_CONCURRENT_EVALUATIONS` bounds NVIDIA API usage. Canonical public GitHub repository links in resume text and PDF hyperlinks are verified concurrently and included in each candidate's `github_projects`.
+
+Recruiter dashboard APIs:
+
+- `GET /api/v1/jobs` lists saved job analyses newest first with candidate counts and average scores.
+- `GET /api/v1/jobs/{job_id}/candidates` returns the JD and its candidates newest first.
+- `GET /api/v1/jobs/{job_id}/candidates/{candidate_id}` returns the candidate's complete report, including GitHub verification.

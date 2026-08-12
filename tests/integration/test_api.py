@@ -21,6 +21,16 @@ def test_analyze_pasted_text():
     assert response.status_code == 200
     assert response.json()["candidates"][0]["verified_score"] == 100
     assert response.json()["candidates"][0]["source_name"] == "Candidate 1"
+    request_id = response.json()["request_id"]
+    jobs = client.get("/api/v1/jobs")
+    assert jobs.status_code == 200
+    assert any(job["job_id"] == request_id for job in jobs.json()["jobs"])
+    candidates = client.get(f"/api/v1/jobs/{request_id}/candidates")
+    assert candidates.status_code == 200
+    assert candidates.json()["candidates"][0]["candidate_id"] == "candidate-1"
+    detail = client.get(f"/api/v1/jobs/{request_id}/candidates/candidate-1")
+    assert detail.status_code == 200
+    assert detail.json()["verified_score"] == 100
 
 def test_rejects_missing_resume():
     assert client.post("/api/v1/analyze", data={"jd_text": "Need Python"}).status_code == 422

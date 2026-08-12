@@ -1,10 +1,16 @@
 from io import BytesIO
 from pathlib import Path
+import re
 import fitz
 from docx import Document
 
 class DocumentParseError(ValueError):
     pass
+
+GITHUB_REPOSITORY = re.compile(
+    r"https://(?:www\.)?github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:\.git)?",
+    re.IGNORECASE,
+)
 
 def parse_document(filename: str, content: bytes, max_size_bytes: int) -> str:
     if not content:
@@ -28,3 +34,18 @@ def parse_document(filename: str, content: bytes, max_size_bytes: int) -> str:
     if not text:
         raise DocumentParseError("No extractable text was found. Scanned PDFs require OCR, which is not supported.")
     return text
+
+def extract_github_repositories(filename: str, content: bytes, text: str) -> list[str]:
+    urls = set(GITHUB_REPOSITORY.findall(text))
+    if Path(filename).suffix.lower() == ".pdf":
+        try:
+            with fitz.open(stream=content, filetype="pdf") as document:
+                urls.update(
+                    link["uri"]
+                    for page in document
+                    for link in page.get_links()
+                    if link.get("uri") and GITHUB_REPOSITORY.fullmatch(link["uri"])
+                )
+        except Exception:
+            return sorted(urls)
+    return sorted(url.removesuffix(".git") for url in urls)

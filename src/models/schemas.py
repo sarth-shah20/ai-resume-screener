@@ -1,4 +1,5 @@
 from enum import StrEnum
+from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
 
 class RequirementCategory(StrEnum):
@@ -62,7 +63,7 @@ class CandidateResult(BaseModel):
     requirement_matches: list[RequirementMatch]
     gaps: list[str]
     interview_questions: list[str]
-    github_projects: list[dict[str, object]] = Field(default_factory=list)
+    github_projects: list["GitHubVerifyResponse"] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
 
 class AnalyzeResponse(BaseModel):
@@ -83,3 +84,30 @@ class GitHubVerifyResponse(BaseModel):
     unsupported_claims: list[str]
     evidence: list[dict[str, str]]
     limitations: list[str]
+
+class JobDashboardItem(BaseModel):
+    job_id: str
+    title: str
+    candidate_count: int
+    latest_analysis_at: datetime
+    average_verified_score: float
+    average_potential_score: float
+
+class JobDashboardResponse(BaseModel):
+    jobs: list[JobDashboardItem]
+
+class CandidateDashboardItem(BaseModel):
+    candidate_id: str
+    source_name: str
+    verified_score: int
+    potential_score: int
+    fit_band: str
+    summary: str
+    github_project_count: int
+    analyzed_at: datetime
+
+class JobCandidatesResponse(BaseModel):
+    job_id: str
+    job: ExtractedJob
+    raw_description: str
+    candidates: list[CandidateDashboardItem]

@@ -4,8 +4,8 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import Settings, get_settings
 from src.database import ScreeningRepository
-from src.models.schemas import AnalyzeResponse, GitHubVerifyRequest, GitHubVerifyResponse
-from src.parsers import DocumentParseError, parse_document
+from src.models.schemas import AnalyzeResponse, CandidateResult, GitHubVerifyRequest, GitHubVerifyResponse, JobCandidatesResponse, JobDashboardResponse
+from src.parsers import DocumentParseError, extract_github_repositories, parse_document
 from src.services.github_service import GitHubVerifier
 from src.services.llm_service import LLMError, NvidiaLLMProvider
 from src.services.screening_service import ScreeningService
@@ -36,11 +36,16 @@ async def analyze(jd_text: Annotated[str | None, Form()] = None, jd_file: Annota
         job = jd_text.strip() if jd_text else parse_document(jd_file.filename or "job", await jd_file.read(), limit)
         resumes = []
         if resume_text and resume_text.strip():
-            resumes.append(("Pasted resume", resume_text.strip()))
+            text = resume_text.strip()
+            resumes.append(("Pasted resume", text, extract_github_repositories("resume.txt", text.encode(), text)))
         for file in files:
-            resumes.append((file.filename or "Uploaded resume", parse_document(file.filename or "resume", await file.read(), limit)))
+            filename = file.filename or "resume"
+            content = await file.read()
+            text = parse_document(filename, content, limit)
+            resumes.append((filename, text, extract_github_repositories(filename, content, text)))
         repository = ScreeningRepository(settings.database_url)
-        return await ScreeningService(llm, repository, settings.max_concurrent_evaluations).analyze(job, resumes, blind_mode)
+        github = GitHubVerifier(settings, llm)
+        return await ScreeningService(llm, repository, settings.max_concurrent_evaluations, github).analyze(job, resumes, blind_mode)
     except DocumentParseError as exc:
         raise HTTPException(422, str(exc)) from exc
     except LLMError as exc:
@@ -54,3 +59,21 @@ async def verify_github(request: GitHubVerifyRequest, settings: Settings = Depen
         raise HTTPException(422, str(exc)) from exc
     except (httpx.HTTPError, LLMError) as exc:
         raise HTTPException(502, "GitHub verification is temporarily unavailable.") from exc
+
+@app.get("/api/v1/jobs", response_model=JobDashboardResponse)
+async def list_jobs(settings: Settings = Depends(get_settings)) -> JobDashboardResponse:
+    return JobDashboardResponse(jobs=await ScreeningRepository(settings.database_url).list_jobs())
+
+@app.get("/api/v1/jobs/{job_id}/candidates", response_model=JobCandidatesResponse)
+async def list_job_candidates(job_id: str, settings: Settings = Depends(get_settings)) -> JobCandidatesResponse:
+    result = await ScreeningRepository(settings.database_url).list_candidates(job_id)
+    if result is None:
+        raise HTTPException(404, "Job analysis not found.")
+    return result
+
+@app.get("/api/v1/jobs/{job_id}/candidates/{candidate_id}", response_model=CandidateResult)
+async def get_candidate_report(job_id: str, candidate_id: str, settings: Settings = Depends(get_settings)) -> CandidateResult:
+    result = await ScreeningRepository(settings.database_url).get_candidate(job_id, candidate_id)
+    if result is None:
+        raise HTTPException(404, "Candidate report not found.")
+    return result
