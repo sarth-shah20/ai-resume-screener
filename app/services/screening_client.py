@@ -19,7 +19,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from app.services import fixtures
+from app.services import fixtures, scoring
 
 ALLOWED_RESUME_EXTENSIONS = {".pdf", ".docx"}
 MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB, per plan.md's "oversized" handling
@@ -69,11 +69,31 @@ class ScreeningClient:
     ) -> dict[str, Any]:
         """Return evidence-grounded requirement matches plus a deterministic score.
 
-        Real implementation will call src/services/llm_service.py (Prompt 2)
-        for evidence matching and src/services/scoring_service.py for the
-        deterministic score -- the LLM never produces the final number.
+        ``resume`` is expected to carry the fields set by ``parse_resume``
+        (``resume_text``, and the mock-only ``profile_key`` used to look up
+        canned evidence). The evidence matches themselves are mocked (see
+        app/services/fixtures.py) since src/services/llm_service.py (Prompt
+        2 in plan.md #7) doesn't exist yet. The score is calculated for
+        real, in app/services/scoring.py, from those matches -- consistent
+        with never letting the LLM half produce the final number, mocked or
+        not. Once the real LLM service lands, only this method's body
+        changes: it will stop reading ``profile_key`` and instead call the
+        LLM with ``resume["resume_text"]`` and ``requirements``, but will
+        still hand the result to the same scoring function.
         """
-        raise NotImplementedError("Wired up in the screening-run module.")
+        profile_key = resume.get("profile_key")
+        matches = fixtures.mock_analyze_candidate(profile_key) if profile_key else []
+        if not matches:
+            raise ValueError("Could not analyze this candidate's resume. Please retry.")
+        score = scoring.score_candidate(matches, requirements)
+        recommendation, confidence_label = scoring.recommendation_for(score["overall_score"])
+        return {
+            "matches": matches,
+            "overall_score": score["overall_score"],
+            "category_scores": score["category_scores"],
+            "recommendation": recommendation,
+            "confidence_label": confidence_label,
+        }
 
     def redact_pii(self, text: str) -> str:
         """Return a PII-redacted copy of resume text for Blind Review Mode.

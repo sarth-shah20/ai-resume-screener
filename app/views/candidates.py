@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any
 
 import streamlit as st
 
 from app.components.badges import badge_html
 from app.services.screening_client import get_client
+from app.state import candidate_label
 
 _UPLOADER_KEY = "candidates_uploader_files"
 
@@ -34,6 +34,7 @@ def _process_uploads() -> None:
                     "filename": file.name,
                     "display_name": file.name,
                     "resume_text": None,
+                    "profile_key": None,
                     "status": "error",
                     "error_message": str(exc),
                 }
@@ -45,6 +46,7 @@ def _process_uploads() -> None:
                     "filename": file.name,
                     "display_name": parsed["display_name"],
                     "resume_text": parsed["resume_text"],
+                    "profile_key": parsed.get("profile_key"),
                     "status": "parsed",
                     "error_message": None,
                 }
@@ -60,12 +62,6 @@ def _remove_candidate(candidate_id: str) -> None:
 
 def _clear_all() -> None:
     st.session_state["candidates"] = []
-
-
-def _blind_label(position: int, candidate: dict[str, Any]) -> str:
-    if candidate["status"] == "error":
-        return f"Candidate {position} (upload error)"
-    return f"Candidate {position}"
 
 
 def render() -> None:
@@ -102,7 +98,7 @@ def render() -> None:
 
     blind = st.session_state.get("blind_review", False)
     for position, candidate in enumerate(candidates, start=1):
-        name = _blind_label(position, candidate) if blind else candidate["display_name"]
+        name = candidate_label(candidate, position, blind)
         badge = (
             badge_html("Parsed", "success")
             if candidate["status"] == "parsed"

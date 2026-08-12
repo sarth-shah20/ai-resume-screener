@@ -73,3 +73,17 @@ def reset_session() -> None:
     for key in list(_DEFAULTS.keys()):
         del st.session_state[key]
     init_session_state()
+
+
+def candidate_label(candidate: dict[str, Any], position: int, blind: bool) -> str:
+    """Return the display label for a candidate, anonymized under Blind Review Mode.
+
+    Shared by every view that lists candidates (intake, screening, report,
+    ...) so a candidate's blind label stays consistent -- same position,
+    same "Candidate N" -- everywhere it's shown.
+    """
+    if not blind:
+        return candidate["display_name"]
+    if candidate.get("status") == "error":
+        return f"Candidate {position} (upload error)"
+    return f"Candidate {position}"
