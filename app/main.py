@@ -20,7 +20,7 @@ from app.components.nav import render_sidebar
 from app.components.states import empty_state
 from app.state import STEPS, init_session_state
 from app.theme import apply_theme
-from app.views import job_setup
+from app.views import candidates, job_setup
 
 st.set_page_config(
     page_title="AI Resume Screener",
@@ -49,11 +49,6 @@ _STEP_SUBTITLE = {
 
 # icon, title, description -- shown for steps that don't have a real view yet.
 _EMPTY_STATE_COPY = {
-    "candidates": (
-        "📄",
-        "No candidates uploaded yet",
-        "Once a job description is set, upload resumes here.",
-    ),
     "screening": (
         "🔍",
         "Nothing to screen yet",
@@ -78,6 +73,7 @@ _EMPTY_STATE_COPY = {
 
 _VIEW_RENDERERS = {
     "job_setup": job_setup.render,
+    "candidates": candidates.render,
 }
 
 current_step = st.session_state["current_step"]

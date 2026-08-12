@@ -16,9 +16,13 @@ scoring/LLM pipeline inside the UI layer.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from app.services import fixtures
+
+ALLOWED_RESUME_EXTENSIONS = {".pdf", ".docx"}
+MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB, per plan.md's "oversized" handling
 
 
 class ScreeningClient:
@@ -39,11 +43,26 @@ class ScreeningClient:
         return fixtures.mock_extract_requirements(job_description)
 
     def parse_resume(self, file_bytes: bytes, filename: str) -> dict[str, Any]:
-        """Return extracted text/sections for one uploaded resume.
+        """Validate an uploaded resume and return its extracted text.
 
-        Real implementation will call src/parsers/resume_parser.py.
+        Validation (extension, empty, oversized) is real and enforced here
+        since it doesn't depend on actual PDF/DOCX parsing. The text itself
+        is mocked (see app/services/fixtures.py) since
+        src/parsers/resume_parser.py -- which will call PyMuPDF / python-docx
+        -- doesn't exist yet. Swapping the mock for a real parse call should
+        only change this method's body, not its signature or the errors it
+        raises.
         """
-        raise NotImplementedError("Wired up in the candidate-intake module.")
+        extension = Path(filename).suffix.lower()
+        if extension not in ALLOWED_RESUME_EXTENSIONS:
+            raise ValueError(
+                f"Unsupported file type '{extension or 'unknown'}'. Upload a PDF or DOCX resume."
+            )
+        if not file_bytes:
+            raise ValueError("This file is empty.")
+        if len(file_bytes) > MAX_RESUME_SIZE_BYTES:
+            raise ValueError("This file exceeds the 5 MB size limit.")
+        return fixtures.mock_parse_resume(filename)
 
     def analyze_candidate(
         self, resume: dict[str, Any], requirements: dict[str, Any]
@@ -59,9 +78,12 @@ class ScreeningClient:
     def redact_pii(self, text: str) -> str:
         """Return a PII-redacted copy of resume text for Blind Review Mode.
 
-        Real implementation will call src/services/pii_service.py.
+        Currently a regex-based mock covering email/phone only (see
+        app/services/fixtures.py). Real implementation will call
+        src/services/pii_service.py, which per plan.md #10 also needs to
+        handle names, addresses, and photos.
         """
-        raise NotImplementedError("Wired up in the candidate-intake module.")
+        return fixtures.mock_redact_pii(text)
 
 
 def get_client() -> ScreeningClient:

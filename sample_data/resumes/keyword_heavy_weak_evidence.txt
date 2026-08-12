@@ -1,0 +1,24 @@
+Taylor Chen
+taylor.chen@example.com | (555) 028-6610 | Remote
+
+SUMMARY
+Results-driven engineer passionate about Python, AWS, Kubernetes, Docker,
+PostgreSQL, REST APIs, and event-driven architecture.
+
+EXPERIENCE
+
+IT Support Specialist, Meridian Office Solutions (2020 - Present)
+- Supported employee laptops, printers, and network connectivity issues.
+- Assisted with onboarding new hires and managing shared drive permissions.
+- Attended internal workshops covering Python, AWS, and Kubernetes basics.
+
+Help Desk Technician, Campus Tech Services (2019 - 2020)
+- Resolved tier-1 support tickets for students and faculty.
+- Maintained a spreadsheet tracking hardware inventory.
+
+EDUCATION
+Certificate in IT Support, Local Community College (2019)
+
+SKILLS
+Python, AWS, Kubernetes, Docker, PostgreSQL, REST APIs, event-driven
+architecture, Agile, Scrum, Git, Linux, networking, customer service
