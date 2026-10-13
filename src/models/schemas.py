@@ -39,6 +39,7 @@ class RequirementMatch(BaseModel):
     confidence: Confidence
     evidence: str | None = None
     evidence_section: str | None = None
+    evidence_grounded: bool | None = None
     explanation: str = Field(min_length=1)
     @model_validator(mode="after")
     def require_grounding(self) -> "RequirementMatch":

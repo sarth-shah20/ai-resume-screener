@@ -42,6 +42,26 @@ streamlit run app/main.py
 FastAPI serves the analysis and persistence API on port 8000. Streamlit serves
 the recruiter dashboard on port 8501 and calls FastAPI through `BACKEND_URL`.
 
+## Explainability
+
+The language model only classifies each requirement and quotes evidence; the
+score is a weighted sum calculated in `src/services/scoring_service.py`. That
+makes every explanation below exact and reproducible, with no extra model calls.
+Each one is a tab on the candidate report.
+
+| Report feature | Question it answers | Explainable AI technique |
+| --- | --- | --- |
+| Why this score: per-requirement point chart | Why did this candidate get this number? | Local additive feature attribution. The score is linear, so the attribution is exact rather than approximated. |
+| What-if simulator and fewest changes to the next fit band | What would have to be true for the result to change? | Counterfactual explanation. The suggested path is minimal in the number of changes. |
+| Quote found / not found in resume | Can the model's cited evidence be trusted? | Faithfulness check. Each quote is matched against the resume text in code, independently of the model. |
+| Compare: status heatmap and point differences | Why does one candidate rank above another? | Contrastive explanation. |
+| How this score is calculated, and the JSON audit download | What rules does the system apply to everyone? | Global explanation and auditability. |
+
+Limitations: the grounding check confirms that a quote appears in the resume,
+not that the quote proves the requirement; ungrounded quotes are flagged for
+review and do not change the score. Reports saved before this check was added
+show no grounding badge.
+
 ## Contributing
 
 Create a task-specific branch before editing, push only that branch, and open a pull request into `main`. Never commit API keys, real resumes, or candidate PII.

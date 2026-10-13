@@ -8,6 +8,7 @@ from app.components.badges import badge_html
 from app.components.states import empty_state
 from app.services.screening_client import BackendRequestError, BackendUnavailable, get_client
 from app.state import navigate
+from app.views import explain
 
 _STATUS_VARIANT = {
     "demonstrated": "success",
@@ -65,10 +66,34 @@ def render() -> None:
     github.metric("GitHub projects", len(report["github_projects"]))
     st.info(report["summary"])
 
+    evidence_tab, why_tab, what_if_tab, compare_tab = st.tabs(
+        ["Evidence", "Why this score", "What-if", "Compare"]
+    )
+    with evidence_tab:
+        _render_evidence(job_payload, report)
+    with why_tab:
+        explain.render_attribution(job_payload["job"], report)
+    with what_if_tab:
+        explain.render_what_if(job_payload["job"], report, f"{job_id}_{candidate_id}")
+    with compare_tab:
+        explain.render_compare(job_payload, job_id, report)
+
+
+def _render_evidence(job_payload: dict, report: dict) -> None:
     requirement_by_id = {
         item["id"]: item for item in job_payload["job"]["requirements"]
     }
     st.markdown("### Requirement evidence")
+    checked = [
+        match["evidence_grounded"]
+        for match in report["requirement_matches"]
+        if match.get("evidence_grounded") is not None
+    ]
+    if checked:
+        st.caption(
+            f"Evidence quotes found in the resume text: **{sum(checked)} of {len(checked)}**. "
+            "Quotes are checked in code, independently of the model."
+        )
     for match in report["requirement_matches"]:
         requirement = requirement_by_id.get(match["requirement_id"], {})
         title = requirement.get("description", match["requirement_id"])
@@ -84,6 +109,14 @@ def render() -> None:
             st.caption(f"Confidence: {match['confidence'].title()}")
             if match.get("evidence"):
                 st.markdown(f"> {match['evidence']}")
+                grounded = match.get("evidence_grounded")
+                if grounded is not None:
+                    st.markdown(
+                        badge_html("Quote found in resume", "success")
+                        if grounded
+                        else badge_html("Quote not found in resume", "danger"),
+                        unsafe_allow_html=True,
+                    )
                 if match.get("evidence_section"):
                     st.caption(f"Source section: {match['evidence_section']}")
             else:

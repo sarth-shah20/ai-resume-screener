@@ -2,6 +2,7 @@ import asyncio
 import time
 from uuid import uuid4
 from src.database import ScreeningRepository
+from src.services.explain_service import is_grounded
 from src.services.github_service import GitHubVerifier
 from src.models.schemas import AnalyzeResponse, CandidateResult
 from src.services.llm_service import LLMProvider
@@ -22,9 +23,15 @@ class ScreeningService:
 
         async def evaluate(index: int, source_name: str, resume: str, github_urls: list[str]) -> CandidateResult:
             async with semaphore:
-                analysis = await self.llm.analyze_candidate(job, redact_pii(resume) if blind_mode else resume)
+                analyzed_text = redact_pii(resume) if blind_mode else resume
+                analysis = await self.llm.analyze_candidate(job, analyzed_text)
                 github_projects = []
                 warnings = []
+                for match in analysis.requirement_matches:
+                    match.evidence_grounded = is_grounded(match.evidence, analyzed_text) if match.evidence else None
+                ungrounded = sum(match.evidence_grounded is False for match in analysis.requirement_matches)
+                if ungrounded:
+                    warnings.append(f"{ungrounded} evidence quote(s) could not be found in the resume text; review them manually.")
                 if self.github and github_urls:
                     claim = " ".join(
                         [analysis.summary]

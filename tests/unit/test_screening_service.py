@@ -89,3 +89,21 @@ async def test_evaluations_are_bounded_and_results_are_persisted(tmp_path):
     detail = await repository.get_candidate(response.request_id, "candidate-1")
     assert detail is not None
     assert detail.github_projects[0].status == "verified"
+
+
+@pytest.mark.asyncio
+async def test_evidence_quotes_are_checked_against_the_resume(tmp_path):
+    repository = ScreeningRepository(f"sqlite:///{tmp_path / 'screenings.db'}")
+    service = ScreeningService(TrackingLLM(), repository, max_concurrent_evaluations=2)
+
+    response = await service.analyze(
+        "Need Python",
+        [("grounded.txt", "I built Python APIs for payments.", []), ("fabricated.txt", "Listed skills: Python.", [])],
+        False,
+    )
+
+    grounded, fabricated = response.candidates
+    assert grounded.requirement_matches[0].evidence_grounded is True
+    assert grounded.warnings == []
+    assert fabricated.requirement_matches[0].evidence_grounded is False
+    assert "could not be found in the resume" in fabricated.warnings[0]
